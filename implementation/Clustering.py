@@ -4,8 +4,8 @@ from tqdm import tqdm
 
 '''
 function identify components is used for creating sets of nodes that represent clusters in graph
-Bfs is modified so that we ignore neighbors with negative affinity and add positive neighbors dictionary of edges of current node
-return value will be a tuple where the first element is a frozen set of nodes that represent clusters and dictionary of positive links between nodes
+Bfs is modified so that we ignore neighbors with negative affinity and add positive neighbors in the dictionary of edges of  the current node
+return value will be a tuple where the first element is a frozen set of nodes that represent clusters and the second elemt is the dictionary of positive links between nodes
 '''
 
 
