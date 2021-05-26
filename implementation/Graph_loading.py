@@ -151,6 +151,7 @@ def generate_random_graph(number_of_nodes, number_of_clusters=1, chance_of_linki
                 if graph.has_edge(node,second_node) and graph.get_edge_data(node,second_node)['affinity'] == "+":
                     if not changed:
                         graph.edges[node,second_node]['affinity'] = "-"
+                        changed = True
                     else:
                         change = random.random()>0.90
                         if change:
