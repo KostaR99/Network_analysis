@@ -21,3 +21,7 @@ Graphs that are used in this project are:
 5. Two small hand crafted graphs
 
 Epinions, slashdot and wiki-RfA are converted to undirected graphs. They can be found on <a href ="https://snap.stanford.edu/data/">this link</a>
+
+Things to add:
+
+Visualisations for graphs, better ui, graph-tool conversion for better performances.
