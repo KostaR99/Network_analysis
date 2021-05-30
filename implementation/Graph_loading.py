@@ -1,5 +1,4 @@
 import networkx as nx
-from tqdm import tqdm
 import random
 
 
@@ -13,7 +12,7 @@ If there is at least one negative edges between two nodes, edge between those tw
 def convert_to_undirected(graph):
     undirected_graph = nx.Graph()
     undirected_graph.add_edges_from(graph.edges(), affinity="")
-    for u, v, d in graph.edges(data=True):
+    for u, v in graph.edges():
         aff1 = graph[u][v]['affinity']
         aff2 = ""
         if (v, u) in graph.edges:
@@ -27,35 +26,20 @@ def convert_to_undirected(graph):
 
 
 '''
-Function load_small_graph is used for loading a small graph and adding affinities on its edges.
+Function for loading small hand-crafted graphs that are clusterable or unclusterable
 '''
 
 
 
-def load_small_graph():
-    graph = nx.tutte_graph()
-    add_affinity_on_edges(graph)
+def load_small_graph(path):
+    graph = nx.Graph()
+    print("Loading a graph...")
+    with open(path,'r') as file:
+        for line in file:
+            row = line.split(" ")
+            graph.add_edge(row[0].strip(),row[1].strip(),affinity=row[2].strip())
+    print("Loaded!")
     return graph
-
-
-
-'''
-Function add_affinity_on_edges is used for adding affinites on edges without them. There is 33% chance for an endge to change from positive to negative
-affinity 
-'''
-
-
-
-def add_affinity_on_edges(graph:nx.Graph):
-    nx.set_edge_attributes(graph,"+","affinity")
-    for node in graph:
-        for second_node in graph:
-            if node == second_node:
-                continue
-            if graph.has_edge(node,second_node):
-                chance = random.random() > 0.66
-                if chance :
-                    graph.edges[node,second_node]['affinity'] = '-'
 
 
 
@@ -67,11 +51,9 @@ Function load_wiki loads a wiki-RfA graph that is in form of a textual file
 
 def load_wiki(path):
     graph = nx.DiGraph()
+    print("Loading the graph...")
     with open(path, "r", encoding="utf8") as file:
-        source = None
-        target = None
-        affinity = None
-        for line in tqdm(file, desc="Loading the graph"):
+        for line in file:
             if line.startswith("SRC"):
                 source = line.split(":")[1].strip()
             elif line.startswith("TGT"):
@@ -83,6 +65,7 @@ def load_wiki(path):
                 else:
                     affinity = "+"
                 graph.add_edge(source, target, affinity=affinity)
+    print("Loaded!")
     return convert_to_undirected(graph)
 
 
@@ -96,8 +79,9 @@ We can use the same function because the structure of textual files are the same
 
 def load_epinions_slash(path):
     graph = nx.DiGraph()
+    print("Loading the graph...")
     with open(path, "r") as file:
-        for line in tqdm(file, desc="Loading the graph"):
+        for line in file:
             if line.startswith("#"):
                 continue
             row = line.split("\t")
@@ -107,6 +91,7 @@ def load_epinions_slash(path):
             else:
                 affinity = "+"
             graph.add_edge(row[0].strip(), row[1].strip(), affinity=affinity)
+    print("Loaded!")
     return convert_to_undirected(graph)
 
 
@@ -120,44 +105,38 @@ If boolean clusterable is False, generated graph will have at least one negative
 
 
 
-def generate_random_graph(number_of_nodes, number_of_clusters=1, chance_of_linking=0.5,clusterable = True):
+def generate_random_graph(number_of_nodes, number_of_clusters,clusterable = True):
+    print("Generating random graph...")
     graph = nx.Graph()
-    for i in tqdm(range(number_of_nodes), desc="Adding nodes to the graph"):
+    for i in range(number_of_nodes):
         cluster = random.randint(1, number_of_clusters)
         graph.add_node(i, cluster=cluster)
 
+    bad_link = False
 
-    for node in tqdm(graph.nodes, desc="Linking nodes"):
+    for node in graph.nodes:
         for second_node in graph.nodes:
             if node == second_node:
                 continue
-            is_neighbor = random.random() > chance_of_linking
+            is_neighbor = random.uniform(0,1) > 0.05
 
-            if is_neighbor and not graph.has_edge(node, second_node):
+            if is_neighbor and not graph.has_edge(node, second_node) and graph.degree[node] < 3 and graph.degree[second_node] < 3:
                 if graph.nodes[node]['cluster'] == graph.nodes[second_node]['cluster']:
-                    graph.add_edge(node, second_node, affinity="+")
+                    if not clusterable:
+                        if not bad_link:
+                            graph.add_edge(node, second_node, affinity="-")
+                            bad_link = True
+                        else:
+                            chance = random.uniform(0,1) > 0.25
+                            if chance:
+                                graph.add_edge(node, second_node, affinity="-")
+                            else:
+                                graph.add_edge(node, second_node, affinity="+")
+
+                    else:
+                        graph.add_edge(node,second_node,affinity="+")
 
                 else:
                     graph.add_edge(node, second_node, affinity="-")
-    
-    if not clusterable:
-
-        changed = False
-        for node in graph.nodes:
-            for second_node in graph.nodes:
-                if node == second_node:
-                    continue
-                
-                if graph.has_edge(node,second_node) and graph.get_edge_data(node,second_node)['affinity'] == "+":
-                    if not changed:
-                        graph.edges[node,second_node]['affinity'] = "-"
-                        changed = True
-                    else:
-                        change = random.random()>0.90
-                        if change:
-                            graph.edges[node,second_node]['affinity'] = "-"
-                
-    
+    print("Generated!")   
     return graph
-
-
