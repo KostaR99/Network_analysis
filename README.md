@@ -18,6 +18,6 @@ Graphs that are used in this project are:
 2. Slashdot graph
 3. Wiki-RfA graph
 4. Random graph, that can be clusterable or unclusterable
-5. Small tutte graph with added affinities on its edges
+5. Two small hand crafted graphs
 
 Epinions, slashdot and wiki-RfA are converted to undirected graphs. They can be found on <a href ="https://snap.stanford.edu/data/">this link</a>
